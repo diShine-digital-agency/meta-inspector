@@ -1,0 +1,38 @@
+{
+  "name": "@dishine/meta-inspector",
+  "version": "1.0.0",
+  "description": "Fetch any URL — get structured meta tags, Open Graph, Twitter Cards, schema markup, and social preview simulations",
+  "type": "module",
+  "bin": {
+    "meta-inspector": "./bin/cli.js"
+  },
+  "main": "./src/index.js",
+  "scripts": {
+    "start": "node bin/cli.js"
+  },
+  "keywords": [
+    "meta-tags",
+    "open-graph",
+    "twitter-card",
+    "schema",
+    "seo",
+    "social-preview",
+    "og-tags",
+    "structured-data",
+    "json-ld",
+    "link-preview"
+  ],
+  "author": "diShine Digital Agency <hello@dishine.it> (https://dishine.it)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/diShine-digital-agency/meta-inspector.git"
+  },
+  "homepage": "https://github.com/diShine-digital-agency/meta-inspector",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0"
+  }
+}
