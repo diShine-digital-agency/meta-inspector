@@ -1,26 +1,16 @@
 # meta-inspector
 
-**Fetch any URL — get meta tags, Open Graph, Twitter Cards, schema markup, and social preview simulations.**
+**See exactly how your page looks when someone shares it on Google, Facebook, LinkedIn, Twitter/X, Slack, or WhatsApp.**
 
-One command shows you exactly how your page looks when shared on Google, Facebook, LinkedIn, Twitter/X, Slack, and WhatsApp.
+You spend time writing a great blog post, then someone shares it on LinkedIn and it shows up with a broken image, a truncated title, or worse -- the wrong description entirely. This tool fetches a URL, extracts every meta tag it can find (Open Graph, Twitter Cards, JSON-LD schema, the lot), validates them against each platform's requirements, and shows you a simulated preview of how the link will actually render. It also tells you what's missing and gives you the exact HTML to fix it.
 
-Built by [diShine Digital Agency](https://dishine.it)
+No headless browser needed -- it's a plain HTTP fetch, so it runs in about 400ms per page.
 
----
-
-## What it does
-
-1. Fetches the page (follows redirects, reports chain)
-2. Extracts **everything**: title, description, canonical, OG tags, Twitter Cards, JSON-LD schema, icons, hreflang, headings
-3. **Validates** each area against platform requirements — scores SEO, Open Graph, Twitter Card, and Schema separately
-4. **Simulates social previews** — shows exactly how your link will render on 6 platforms
-5. Reports issues with **exact HTML fixes** you can copy-paste
-
-No headless browser needed — works with a simple HTTP fetch (~400ms per page).
+Built by [diShine](https://dishine.it)
 
 ---
 
-## Quick Start
+## Quick start
 
 ```bash
 # Install globally
@@ -36,7 +26,7 @@ meta-inspector example.com -f markdown -o report.md
 meta-inspector site1.com site2.com site3.com -f json -o results.json
 ```
 
-Or run without installing:
+Or run it without installing:
 
 ```bash
 npx @dishine/meta-inspector example.com
@@ -44,11 +34,11 @@ npx @dishine/meta-inspector example.com
 
 ---
 
-## Output Example
+## What the output looks like
 
 ```
   Meta Inspector Report
-  https://stripe.com — 4 Apr 2026
+  https://stripe.com -- 4 Apr 2026
   Stripe | Financial Infrastructure to Grow Your Revenue
 
   Scores
@@ -97,13 +87,23 @@ npx @dishine/meta-inspector example.com
 
 ---
 
-## What it checks
+## What it does, step by step
 
-### Scoring (0-100 per area)
+1. Fetches the page (follows redirects, reports the chain)
+2. Extracts everything it can find: title, description, canonical, OG tags, Twitter Cards, JSON-LD schema, icons, hreflang, headings
+3. Validates each area against platform requirements and scores SEO, Open Graph, Twitter Card, and Schema separately (0-100)
+4. Simulates social previews showing how your link renders on 6 platforms
+5. Reports issues with the exact HTML fix you can copy-paste into your `<head>`
 
-| Area | What it validates |
-|------|-------------------|
-| **SEO** | Title (length, presence), description, canonical, viewport, lang, charset, h1 count |
+---
+
+## What it validates
+
+### Scoring areas (0-100 each)
+
+| Area | What it checks |
+|------|----------------|
+| **SEO** | title (length + presence), description, canonical, viewport, lang, charset, h1 count |
 | **Open Graph** | og:title, og:description, og:image (absolute URL, dimensions, alt), og:url, og:type, og:site_name, og:locale |
 | **Twitter Card** | card type, title, description, image, twitter:site handle |
 | **Schema.org** | JSON-LD presence, @type declarations, Organization/WebSite coverage |
@@ -112,22 +112,24 @@ npx @dishine/meta-inspector example.com
 
 | Level | Examples |
 |-------|----------|
-| **Critical** | Missing title tag, missing viewport |
-| **High** | No OG tags, no Twitter Card + no OG fallback, missing meta description |
-| **Medium** | Missing og:image, missing canonical, no JSON-LD, short title |
-| **Low** | Missing og:locale, long title (truncation risk), missing og:image:alt |
+| **critical** | missing title tag, missing viewport |
+| **high** | no OG tags at all, no Twitter Card and no OG fallback, missing meta description |
+| **medium** | missing og:image, missing canonical, no JSON-LD, title too short |
+| **low** | missing og:locale, title truncation risk, missing og:image:alt |
 
-Every issue includes the **exact HTML** to fix it.
+Every issue comes with the exact HTML snippet to fix it.
 
 ### Social preview simulation
 
 Shows how your link will appear on:
-- **Google Search** — title (60 chars), URL, description (155 chars)
-- **Facebook / Meta** — image, domain, title, description
-- **Twitter / X** — image, title, description, domain
-- **LinkedIn** — image, title, domain
-- **Slack** — site name, title, description
-- **WhatsApp** — image, domain, title, description
+- **Google Search** -- title (60 chars), URL, description (155 chars)
+- **Facebook / Meta** -- image, domain, title, description
+- **Twitter / X** -- image, title, description, domain
+- **LinkedIn** -- image, title, domain
+- **Slack** -- site name, title, description
+- **WhatsApp** -- image, domain, title, description
+
+This is genuinely useful for catching things like images that are the wrong aspect ratio for Facebook, or titles that get cut off on LinkedIn. You see the problem before your audience does.
 
 ---
 
@@ -135,18 +137,18 @@ Shows how your link will appear on:
 
 | Flag | Description | Default |
 |------|-------------|---------|
-| `-f, --format` | Output: `table`, `json`, `markdown` | `table` |
-| `-o, --output` | Save report to file | stdout |
-| `-t, --timeout` | Request timeout in ms | `15000` |
-| `--user-agent` | Custom User-Agent string | meta-inspector/1.0 |
-| `--no-previews` | Skip social preview generation | off |
-| `-q, --quiet` | Suppress progress messages | off |
+| `-f, --format` | output: `table`, `json`, `markdown` | `table` |
+| `-o, --output` | save report to file | stdout |
+| `-t, --timeout` | request timeout in ms | `15000` |
+| `--user-agent` | custom User-Agent string | meta-inspector/1.0 |
+| `--no-previews` | skip social preview generation | off |
+| `-q, --quiet` | suppress progress messages | off |
 
 ---
 
 ## Batch mode
 
-Inspect multiple URLs in one command:
+Inspect multiple URLs in one go:
 
 ```bash
 # Multiple arguments
@@ -177,21 +179,21 @@ console.log(formatMarkdown({ fetchInfo: page, data, validation, previews }));
 
 | Code | Meaning |
 |------|---------|
-| `0` | Overall score >= 50 |
-| `1` | Overall score < 50 (needs work) |
-| `2` | Fatal error (fetch failed) |
+| `0` | overall score >= 50 |
+| `1` | overall score < 50 (needs work) |
+| `2` | fatal error (fetch failed) |
 
 ---
 
 ## Requirements
 
 - **Node.js** 18 or later
-- No headless browser needed (pure HTTP fetch + HTML parsing)
+- No headless browser needed -- it's pure HTTP fetch + HTML parsing
 
 ---
 
 ## License
 
-MIT License — see [LICENSE](LICENSE) for details.
+MIT License -- see [LICENSE](LICENSE) for details.
 
-Copyright (c) 2026 [diShine Digital Agency](https://dishine.it)
+Copyright (c) 2026 [diShine](https://dishine.it)
