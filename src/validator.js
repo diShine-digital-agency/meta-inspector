@@ -8,7 +8,7 @@ export function validate(data, pageUrl) {
   const scores = {};
 
   // ── Basic / SEO ──────────────────────────────────────────────────────
-  scores.seo = validateSEO(data, issues);
+  scores.seo = validateSEO(data, pageUrl, issues);
 
   // ── Open Graph (Facebook, LinkedIn, WhatsApp, Slack) ─────────────────
   scores.openGraph = validateOpenGraph(data, pageUrl, issues);
@@ -29,7 +29,7 @@ export function validate(data, pageUrl) {
 
 // ── SEO validation ─────────────────────────────────────────────────────
 
-function validateSEO(data, issues) {
+function validateSEO(data, pageUrl, issues) {
   let score = 100;
   const b = data.basic;
 
@@ -63,10 +63,16 @@ function validateSEO(data, issues) {
 
   // Canonical
   if (!b.canonical) {
-    issues.push(issue("medium", "seo", "Missing canonical URL", "Without a canonical tag, search engines may index duplicate versions of this page.", `<link rel="canonical" href="${data._pageUrl || 'https://example.com/page'}">`));
+    issues.push(issue("medium", "seo", "Missing canonical URL", "Without a canonical tag, search engines may index duplicate versions of this page.", `<link rel="canonical" href="${pageUrl}">`));
     score -= 10;
   } else if (b.canonicalMatchesUrl === false) {
     issues.push(issue("low", "seo", "Canonical URL differs from page URL", `Canonical points to ${b.canonical}. This is intentional if this page is a duplicate.`, null));
+  }
+
+  // Canonical uses HTTP instead of HTTPS
+  if (b.canonical && b.canonical.startsWith("http://")) {
+    issues.push(issue("medium", "seo", "Canonical URL uses HTTP instead of HTTPS", "Search engines prefer HTTPS. Update the canonical to use HTTPS.", b.canonical.replace("http://", "https://")));
+    score -= 5;
   }
 
   // Language
@@ -94,6 +100,23 @@ function validateSEO(data, issues) {
   if (!b.charset) {
     issues.push(issue("low", "seo", "Missing charset declaration", "Declare character encoding to avoid rendering issues.", '<meta charset="UTF-8">'));
     score -= 3;
+  }
+
+  // Robots noindex check (informational, not penalized)
+  if (b.robots && /noindex/i.test(b.robots)) {
+    issues.push(issue("high", "seo", "Page is set to noindex", "This page will not appear in search engine results. Remove noindex if this is unintentional.", null));
+  }
+
+  // HTTPS check
+  if (pageUrl && pageUrl.startsWith("http://")) {
+    issues.push(issue("high", "seo", "Page served over HTTP (not HTTPS)", "HTTPS is a ranking factor. Migrate to HTTPS for better security and SEO.", null));
+    score -= 5;
+  }
+
+  // Favicon check — flag when no explicit <link rel="icon"> tag exists
+  if (data.links.icons.length === 0) {
+    issues.push(issue("low", "seo", "No favicon link tag found", "Browsers and search results display favicons. Add an explicit link tag.", '<link rel="icon" href="/favicon.svg" type="image/svg+xml">'));
+    score -= 2;
   }
 
   return Math.max(0, score);
@@ -243,12 +266,13 @@ function validateSchema(data, issues) {
   }
 
   const types = data.schema.map((s) => s["@type"]).filter(Boolean);
+  const flatTypes = types.flatMap((t) => Array.isArray(t) ? t : [t]);
 
   // Check for common types
-  const hasOrg = types.some((t) => t === "Organization" || t === "LocalBusiness");
-  const hasWebSite = types.some((t) => t === "WebSite");
-  const hasBreadcrumb = types.some((t) => t === "BreadcrumbList");
-  const hasWebPage = types.some((t) => t === "WebPage" || t === "Article" || t === "Product" || t === "BlogPosting");
+  const hasOrg = flatTypes.some((t) => t === "Organization" || t === "LocalBusiness");
+  const hasWebSite = flatTypes.some((t) => t === "WebSite");
+  const hasBreadcrumb = flatTypes.some((t) => t === "BreadcrumbList");
+  const hasWebPage = flatTypes.some((t) => t === "WebPage" || t === "Article" || t === "Product" || t === "BlogPosting" || t === "NewsArticle");
 
   if (!hasOrg && !hasWebSite) {
     issues.push(issue("low", "schema", "Missing Organization or WebSite schema", "Helps Google identify your brand and may enable a knowledge panel.", null));
@@ -261,14 +285,53 @@ function validateSchema(data, issues) {
       issues.push(issue("low", "schema", "JSON-LD block missing @type", "Every structured data object should declare its type.", null));
       score -= 5;
     }
-    if (!schema["@context"] && !data.schema.some((s) => s["@context"])) {
-      // Context might be on the parent object
+
+    // Validate Organization has required fields
+    if (schema["@type"] === "Organization") {
+      if (!schema.name) {
+        issues.push(issue("low", "schema", "Organization schema missing 'name'", "The name field is required for Organization structured data.", null));
+        score -= 3;
+      }
+      if (!schema.url) {
+        issues.push(issue("low", "schema", "Organization schema missing 'url'", "The url field is recommended for Organization structured data.", null));
+        score -= 2;
+      }
+      if (!schema.logo) {
+        issues.push(issue("low", "schema", "Organization schema missing 'logo'", "Adding a logo helps Google display your brand in search results.", null));
+        score -= 2;
+      }
+    }
+
+    // Validate Article has required fields
+    const articleTypes = ["Article", "NewsArticle", "BlogPosting"];
+    if (articleTypes.includes(schema["@type"])) {
+      if (!schema.headline) {
+        issues.push(issue("low", "schema", `${schema["@type"]} schema missing 'headline'`, "The headline field is required for article structured data.", null));
+        score -= 3;
+      }
+      if (!schema.datePublished) {
+        issues.push(issue("low", "schema", `${schema["@type"]} schema missing 'datePublished'`, "Publication date helps search engines display article age.", null));
+        score -= 2;
+      }
+      if (!schema.author) {
+        issues.push(issue("low", "schema", `${schema["@type"]} schema missing 'author'`, "Author information is recommended for article structured data.", null));
+        score -= 2;
+      }
+    }
+
+    // Validate Product has required fields
+    if (schema["@type"] === "Product") {
+      if (!schema.name) {
+        issues.push(issue("low", "schema", "Product schema missing 'name'", "The name field is required for product structured data.", null));
+        score -= 3;
+      }
     }
   }
 
   // Bonus for good coverage
   if (hasOrg) score = Math.min(100, score + 5);
   if (hasBreadcrumb) score = Math.min(100, score + 5);
+  if (hasWebPage) score = Math.min(100, score + 3);
 
   return Math.max(0, score);
 }

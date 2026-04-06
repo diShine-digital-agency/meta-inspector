@@ -12,6 +12,12 @@ import { load } from "cheerio";
  *   links     — Canonical, alternate, hreflang, RSS, icons
  *   images    — og:image, twitter:image with resolved URLs
  *   headings  — h1/h2 hierarchy (for SEO context)
+ *   dublin    — Dublin Core metadata (DC.*)
+ *   apple     — Apple-specific meta tags
+ *   ms        — Microsoft/IE meta tags (msapplication-*)
+ *   facebook  — Facebook-specific tags (fb:*)
+ *   article   — Article OG tags (article:*)
+ *   security  — Security-related meta (CSP, referrer, permissions-policy)
  */
 export function extract(html, pageUrl) {
   const $ = load(html);
@@ -25,6 +31,13 @@ export function extract(html, pageUrl) {
     links: extractLinks($, pageUrl),
     images: extractImages($, pageUrl),
     headings: extractHeadings($),
+    dublin: extractDublinCore($),
+    apple: extractApple($),
+    ms: extractMicrosoft($),
+    facebook: extractFacebook($),
+    pinterest: extractPinterest($),
+    article: extractArticle($),
+    security: extractSecurity($),
   };
 }
 
@@ -248,6 +261,144 @@ function extractHeadings($) {
   });
 
   return { h1: h1s, h2: h2s.slice(0, 10) }; // limit h2 to 10
+}
+
+// ── Dublin Core ────────────────────────────────────────────────────────
+
+function extractDublinCore($) {
+  const dc = {};
+  $('meta[name^="DC."], meta[name^="dc."], meta[name^="DCTERMS."], meta[name^="dcterms."]').each((_, el) => {
+    const name = $(el).attr("name");
+    const content = $(el).attr("content");
+    if (name && content) {
+      const key = name.replace(/^(?:DC|dc|DCTERMS|dcterms)\./, "");
+      if (dc[key]) {
+        if (Array.isArray(dc[key])) dc[key].push(content);
+        else dc[key] = [dc[key], content];
+      } else {
+        dc[key] = content;
+      }
+    }
+  });
+
+  return Object.keys(dc).length > 0 ? dc : null;
+}
+
+// ── Apple-specific ────────────────────────────────────────────────────
+
+function extractApple($) {
+  const apple = {};
+  const names = [
+    "apple-mobile-web-app-capable",
+    "apple-mobile-web-app-title",
+    "apple-mobile-web-app-status-bar-style",
+    "apple-itunes-app",
+    "format-detection",
+  ];
+
+  for (const name of names) {
+    const content = $(`meta[name="${name}"]`).attr("content");
+    if (content) apple[name] = content;
+  }
+
+  // Apple touch startup images
+  const startupImages = [];
+  $('link[rel="apple-touch-startup-image"]').each((_, el) => {
+    startupImages.push({
+      href: $(el).attr("href"),
+      media: $(el).attr("media") || null,
+    });
+  });
+  if (startupImages.length > 0) apple["touch-startup-images"] = startupImages;
+
+  return Object.keys(apple).length > 0 ? apple : null;
+}
+
+// ── Microsoft / IE ────────────────────────────────────────────────────
+
+function extractMicrosoft($) {
+  const ms = {};
+  $('meta[name^="msapplication-"]').each((_, el) => {
+    const name = $(el).attr("name");
+    const content = $(el).attr("content");
+    if (name && content) {
+      const key = name.replace("msapplication-", "");
+      ms[key] = content;
+    }
+  });
+
+  // X-UA-Compatible
+  const uaCompat = $('meta[http-equiv="X-UA-Compatible"]').attr("content");
+  if (uaCompat) ms["X-UA-Compatible"] = uaCompat;
+
+  return Object.keys(ms).length > 0 ? ms : null;
+}
+
+// ── Facebook (fb:*) ───────────────────────────────────────────────────
+
+function extractFacebook($) {
+  const fb = {};
+  $('meta[property^="fb:"]').each((_, el) => {
+    const prop = $(el).attr("property").replace("fb:", "");
+    const content = $(el).attr("content");
+    if (content) {
+      if (fb[prop]) {
+        if (Array.isArray(fb[prop])) fb[prop].push(content);
+        else fb[prop] = [fb[prop], content];
+      } else {
+        fb[prop] = content;
+      }
+    }
+  });
+
+  return Object.keys(fb).length > 0 ? fb : null;
+}
+
+// ── Pinterest ─────────────────────────────────────────────────────────
+
+function extractPinterest($) {
+  const pinterest = $('meta[name="p:domain_verify"]').attr("content");
+  return pinterest ? { domainVerify: pinterest } : null;
+}
+
+// ── Article OG tags (article:*) ───────────────────────────────────────
+
+function extractArticle($) {
+  const article = {};
+  $('meta[property^="article:"]').each((_, el) => {
+    const prop = $(el).attr("property").replace("article:", "");
+    const content = $(el).attr("content");
+    if (content) {
+      if (article[prop]) {
+        if (Array.isArray(article[prop])) article[prop].push(content);
+        else article[prop] = [article[prop], content];
+      } else {
+        article[prop] = content;
+      }
+    }
+  });
+
+  return Object.keys(article).length > 0 ? article : null;
+}
+
+// ── Security meta ─────────────────────────────────────────────────────
+
+function extractSecurity($) {
+  const security = {};
+
+  const csp = $('meta[http-equiv="Content-Security-Policy"]').attr("content");
+  if (csp) security.csp = csp;
+
+  const cspReport = $('meta[http-equiv="Content-Security-Policy-Report-Only"]').attr("content");
+  if (cspReport) security.cspReportOnly = cspReport;
+
+  const referrer = getMeta($, "referrer");
+  if (referrer) security.referrer = referrer;
+
+  const permissionsPolicy = $('meta[http-equiv="Permissions-Policy"]').attr("content");
+  if (permissionsPolicy) security.permissionsPolicy = permissionsPolicy;
+
+  return Object.keys(security).length > 0 ? security : null;
 }
 
 // ── Utility ────────────────────────────────────────────────────────────

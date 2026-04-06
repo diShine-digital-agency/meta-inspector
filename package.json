@@ -1,6 +1,6 @@
 {
   "name": "@dishine/meta-inspector",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Fetch any URL — get structured meta tags, Open Graph, Twitter Cards, schema markup, and social preview simulations",
   "type": "module",
   "bin": {
@@ -20,7 +20,10 @@
     "og-tags",
     "structured-data",
     "json-ld",
-    "link-preview"
+    "link-preview",
+    "dublin-core",
+    "seo-audit",
+    "meta-inspector"
   ],
   "author": "diShine Digital Agency <hello@dishine.it> (https://dishine.it)",
   "license": "MIT",

@@ -90,6 +90,35 @@ export function formatTable(report) {
     lines.push("");
   }
 
+  // Article metadata
+  if (data.article) {
+    lines.push(c.bold("  Article Metadata"));
+    for (const [key, val] of Object.entries(data.article)) {
+      const display = Array.isArray(val) ? val.join(", ") : val;
+      printKV(lines, `article:${key}`, display);
+    }
+    lines.push("");
+  }
+
+  // Facebook / Platform IDs
+  if (data.facebook) {
+    lines.push(c.bold("  Facebook / Platform"));
+    for (const [key, val] of Object.entries(data.facebook)) {
+      const display = Array.isArray(val) ? val.join(", ") : val;
+      printKV(lines, `fb:${key}`, display);
+    }
+    lines.push("");
+  }
+
+  // Pinterest
+  if (data.pinterest) {
+    lines.push(c.bold("  Pinterest"));
+    if (data.pinterest.domainVerify) {
+      printKV(lines, "p:domain_verify", data.pinterest.domainVerify);
+    }
+    lines.push("");
+  }
+
   // Icons
   if (data.links.icons.length > 0) {
     lines.push(c.bold("  Icons"));
@@ -114,6 +143,15 @@ export function formatTable(report) {
     for (const h of data.headings.h1) lines.push(`  ${c.cyan("h1")} ${truncate(h, 70)}`);
     for (const h of data.headings.h2.slice(0, 5)) lines.push(`  ${c.dim("h2")} ${truncate(h, 70)}`);
     if (data.headings.h2.length > 5) lines.push(`  ${c.dim(`... +${data.headings.h2.length - 5} more h2`)}`);
+    lines.push("");
+  }
+
+  // Security meta
+  if (data.security) {
+    lines.push(c.bold("  Security"));
+    for (const [key, val] of Object.entries(data.security)) {
+      printKV(lines, key, truncate(val, 70));
+    }
     lines.push("");
   }
 
@@ -156,9 +194,16 @@ export function formatJSON(report) {
     openGraph: report.data.og,
     twitterCard: report.data.twitter,
     schema: report.data.schema,
+    article: report.data.article,
+    facebook: report.data.facebook,
+    pinterest: report.data.pinterest,
     images: report.data.images,
     links: report.data.links,
     headings: report.data.headings,
+    dublin: report.data.dublin,
+    apple: report.data.apple,
+    ms: report.data.ms,
+    security: report.data.security,
     issues: report.validation.issues,
   };
   return JSON.stringify(clean, null, 2);
@@ -236,6 +281,44 @@ export function formatMarkdown(report) {
     lines.push("");
     for (const s of data.schema) {
       lines.push(`- **${s["@type"] || "Unknown"}**${s.name ? `: ${s.name}` : ""}`);
+    }
+    lines.push("");
+  }
+
+  // Article
+  if (data.article) {
+    lines.push("## Article Metadata");
+    lines.push("");
+    lines.push("| Property | Value |");
+    lines.push("|----------|-------|");
+    for (const [k, v] of Object.entries(data.article)) {
+      const val = Array.isArray(v) ? v.join(", ") : v;
+      lines.push(`| article:${k} | ${mdEsc(truncate(val, 80))} |`);
+    }
+    lines.push("");
+  }
+
+  // Facebook
+  if (data.facebook) {
+    lines.push("## Facebook / Platform");
+    lines.push("");
+    lines.push("| Property | Value |");
+    lines.push("|----------|-------|");
+    for (const [k, v] of Object.entries(data.facebook)) {
+      const val = Array.isArray(v) ? v.join(", ") : v;
+      lines.push(`| fb:${k} | ${mdEsc(truncate(val, 80))} |`);
+    }
+    lines.push("");
+  }
+
+  // Pinterest
+  if (data.pinterest) {
+    lines.push("## Pinterest");
+    lines.push("");
+    lines.push("| Property | Value |");
+    lines.push("|----------|-------|");
+    if (data.pinterest.domainVerify) {
+      lines.push(`| p:domain_verify | ${mdEsc(data.pinterest.domainVerify)} |`);
     }
     lines.push("");
   }
