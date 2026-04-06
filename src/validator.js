@@ -113,13 +113,10 @@ function validateSEO(data, pageUrl, issues) {
     score -= 5;
   }
 
-  // Favicon check
-  if (!data.images?.favicon || data.images.favicon.endsWith("/favicon.ico")) {
-    // Only flag if no explicit favicon link was found (the default /favicon.ico is a guess)
-    if (data.links.icons.length === 0) {
-      issues.push(issue("low", "seo", "No favicon link tag found", "Browsers and search results display favicons. Add an explicit link tag.", '<link rel="icon" href="/favicon.svg" type="image/svg+xml">'));
-      score -= 2;
-    }
+  // Favicon check — flag when no explicit <link rel="icon"> tag exists
+  if (data.links.icons.length === 0) {
+    issues.push(issue("low", "seo", "No favicon link tag found", "Browsers and search results display favicons. Add an explicit link tag.", '<link rel="icon" href="/favicon.svg" type="image/svg+xml">'));
+    score -= 2;
   }
 
   return Math.max(0, score);

@@ -35,6 +35,7 @@ export function extract(html, pageUrl) {
     apple: extractApple($),
     ms: extractMicrosoft($),
     facebook: extractFacebook($),
+    pinterest: extractPinterest($),
     article: extractArticle($),
     security: extractSecurity($),
   };
@@ -350,11 +351,14 @@ function extractFacebook($) {
     }
   });
 
-  // Pinterest verification
-  const pinterest = $('meta[name="p:domain_verify"]').attr("content");
-  if (pinterest) fb["p:domain_verify"] = pinterest;
-
   return Object.keys(fb).length > 0 ? fb : null;
+}
+
+// ── Pinterest ─────────────────────────────────────────────────────────
+
+function extractPinterest($) {
+  const pinterest = $('meta[name="p:domain_verify"]').attr("content");
+  return pinterest ? { domainVerify: pinterest } : null;
 }
 
 // ── Article OG tags (article:*) ───────────────────────────────────────
