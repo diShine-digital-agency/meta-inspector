@@ -12,7 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Dublin Core extraction** — extracts `DC.*` and `DCTERMS.*` meta tags (common in academic and government sites).
 - **Apple meta extraction** — detects `apple-mobile-web-app-capable`, `apple-itunes-app`, and touch startup images.
 - **Microsoft meta extraction** — detects `msapplication-*` tags and `X-UA-Compatible`.
-- **Facebook platform extraction** — extracts `fb:app_id`, `fb:admins`, `fb:pages`, and Pinterest `p:domain_verify`.
+- **Facebook platform extraction** — extracts `fb:app_id`, `fb:admins`, `fb:pages`.
+- **Pinterest extraction** — extracts `p:domain_verify` domain verification tag.
 - **Article metadata extraction** — extracts `article:published_time`, `article:modified_time`, `article:author`, `article:section`, `article:tag`.
 - **Security meta extraction** — detects Content-Security-Policy, referrer policy, and Permissions-Policy from meta tags.
 - **New SEO validation checks:**

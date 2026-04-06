@@ -110,6 +110,15 @@ export function formatTable(report) {
     lines.push("");
   }
 
+  // Pinterest
+  if (data.pinterest) {
+    lines.push(c.bold("  Pinterest"));
+    if (data.pinterest.domainVerify) {
+      printKV(lines, "p:domain_verify", data.pinterest.domainVerify);
+    }
+    lines.push("");
+  }
+
   // Icons
   if (data.links.icons.length > 0) {
     lines.push(c.bold("  Icons"));
@@ -187,6 +196,7 @@ export function formatJSON(report) {
     schema: report.data.schema,
     article: report.data.article,
     facebook: report.data.facebook,
+    pinterest: report.data.pinterest,
     images: report.data.images,
     links: report.data.links,
     headings: report.data.headings,
@@ -297,6 +307,18 @@ export function formatMarkdown(report) {
     for (const [k, v] of Object.entries(data.facebook)) {
       const val = Array.isArray(v) ? v.join(", ") : v;
       lines.push(`| fb:${k} | ${mdEsc(truncate(val, 80))} |`);
+    }
+    lines.push("");
+  }
+
+  // Pinterest
+  if (data.pinterest) {
+    lines.push("## Pinterest");
+    lines.push("");
+    lines.push("| Property | Value |");
+    lines.push("|----------|-------|");
+    if (data.pinterest.domainVerify) {
+      lines.push(`| p:domain_verify | ${mdEsc(data.pinterest.domainVerify)} |`);
     }
     lines.push("");
   }

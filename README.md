@@ -51,7 +51,8 @@ meta-inspector urls.txt -f json -o results.json
 | **Twitter Card** | twitter:card, twitter:title, twitter:description, twitter:image, twitter:site |
 | **Schema.org** | JSON-LD blocks with @type detection (Organization, WebSite, Article, Product, BreadcrumbList, FAQ, etc.) |
 | **Article** | article:published_time, article:modified_time, article:author, article:section, article:tag |
-| **Facebook** | fb:app_id, fb:admins, fb:pages, Pinterest p:domain_verify |
+| **Facebook** | fb:app_id, fb:admins, fb:pages |
+| **Pinterest** | p:domain_verify |
 | **Dublin Core** | DC.title, DC.creator, DC.subject, DCTERMS.* (common in academic/government sites) |
 | **Apple** | apple-mobile-web-app-capable, apple-itunes-app, touch startup images |
 | **Microsoft** | msapplication-TileColor, msapplication-config, X-UA-Compatible |
