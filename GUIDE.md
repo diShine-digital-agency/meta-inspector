@@ -30,7 +30,7 @@ When you share a link on social media, messaging apps, or search engines, they d
 
 meta-inspector fetches any URL and tells you:
 
-- **What meta tags are present** — title, description, Open Graph, Twitter Cards, JSON-LD schema
+- **What meta tags are present** — title, description, Open Graph, Twitter Cards, JSON-LD schema, Dublin Core, article metadata, Facebook platform tags, and security headers
 - **How your link will look** when shared on Google, Facebook, Twitter/X, LinkedIn, Slack, and WhatsApp
 - **What's missing or misconfigured** — with severity levels and exact HTML code to fix it
 - **An overall score** for SEO, Open Graph, Twitter Card, and Schema.org compliance
@@ -133,10 +133,10 @@ The report gives you four area scores plus an overall score:
 
 | Score | What it measures |
 |-------|-----------------|
-| **SEO** | Title tag (presence, length), meta description, canonical URL, viewport, language, charset, heading structure |
+| **SEO** | Title tag (presence, length), meta description, canonical URL (presence, HTTPS), viewport, language, charset, heading structure, favicon, robots noindex, HTTPS |
 | **Open Graph** | og:title, og:description, og:image (URL, dimensions, alt text), og:url, og:type, og:site_name, og:locale |
 | **Twitter Card** | Card type, title, description, image, twitter:site handle |
-| **Schema.org** | JSON-LD presence, @type declarations, Organization/WebSite coverage |
+| **Schema.org** | JSON-LD presence, @type declarations, required fields per type (Organization, Article, Product), coverage bonus |
 | **Overall** | Weighted average of all four areas |
 
 **Score interpretation:**
@@ -474,6 +474,10 @@ console.log(formatMarkdown({ fetchInfo: page, data, validation, previews }));
 console.log(data.og);           // Open Graph tags
 console.log(data.twitter);     // Twitter Card tags
 console.log(data.schema);      // JSON-LD schema blocks
+console.log(data.article);     // Article metadata (article:*)
+console.log(data.facebook);    // Facebook platform tags (fb:*)
+console.log(data.dublin);      // Dublin Core metadata
+console.log(data.security);    // CSP, referrer policy
 console.log(validation.scores); // { overall, seo, openGraph, twitterCard, schema }
 console.log(validation.issues); // Array of issues with severity and fix instructions
 ```
@@ -556,7 +560,7 @@ npx @dishine/meta-inspector example.com
 A: No. It uses a simple HTTP fetch — much faster (~400ms per page) and no Chromium download needed. The tradeoff is that it can't see meta tags injected by JavaScript.
 
 **Q: How is this different from the Facebook Sharing Debugger?**
-A: Facebook's debugger only shows Facebook-specific tags. meta-inspector shows everything (SEO, OG, Twitter, Schema) and simulates previews for 6 platforms in one command. Plus it works offline (no Facebook login needed) and can batch-scan multiple URLs.
+A: Facebook's debugger only shows Facebook-specific tags. meta-inspector extracts everything (SEO, Open Graph, Twitter Card, Schema.org, Dublin Core, article metadata, security headers) and simulates previews for 6 platforms in one command. It works offline, requires no login, and supports batch scanning.
 
 **Q: Can I use this for client audits?**
 A: Yes. Save the report as Markdown (`-f markdown -o report.md`), add your agency branding, and share with clients. The tool is MIT licensed — use it freely for commercial work.
@@ -572,4 +576,4 @@ A: Yes. Edit `src/validator.js` to add custom checks. Each check is a simple fun
 
 ---
 
-*Built by [diShine Digital Agency](https://dishine.it). MIT License.*
+*Built by [diShine](https://dishine.it). MIT License.*
