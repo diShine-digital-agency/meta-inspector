@@ -1,7 +1,7 @@
 # meta-inspector, the no headless browser URL fetcher for meta tags
 
 <p align="center">
-  <img src="images/meta_inspector_05_markdown_export.webp" alt="Meta Inspector - Markdown export" width="65%">
+  <img src="images/meta_inspector_v3_01_hero_terminal_portrait.webp" alt="Meta Inspector - Markdown export" width="65%">
 </p>
 
 A command-line tool that fetches a URL, extracts its meta tags (Open Graph, Twitter Cards, JSON-LD, Dublin Core, and more), validates them against platform requirements, and simulates how the link will appear when shared on Google, Facebook, LinkedIn, Twitter/X, Slack, and WhatsApp.
@@ -9,6 +9,15 @@ A command-line tool that fetches a URL, extracts its meta tags (Open Graph, Twit
 No headless browser — it runs a plain HTTP fetch and parses the HTML. Typical response time is under 500ms per page.
 
 Built by [diShine](https://dishine.it).
+
+<p align="center">
+  <img src="images/meta_inspector_refined_02_issues_closeup.webp" alt="Meta Inspector issue closeup" width="49%">
+  <img src="images/meta_inspector_refined_04_export_workflow.webp" alt="Meta Inspector workflow" width="49%">
+</p>
+
+<p align="center">
+  <img src="images/meta_inspector_05_markdown_export.webp" alt="Meta Inspector - Markdown export" width="65%">
+</p>
 
 ---
 
