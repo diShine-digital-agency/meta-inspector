@@ -1,4 +1,8 @@
-# meta-inspector
+# meta-inspector, the no headless browser URL fetcher for meta tags
+
+<p align="center">
+  <img src="images/meta_inspector_05_markdown_export.webp" alt="Meta Inspector - Markdown export" width="65%">
+</p>
 
 A command-line tool that fetches a URL, extracts its meta tags (Open Graph, Twitter Cards, JSON-LD, Dublin Core, and more), validates them against platform requirements, and simulates how the link will appear when shared on Google, Facebook, LinkedIn, Twitter/X, Slack, and WhatsApp.
 
