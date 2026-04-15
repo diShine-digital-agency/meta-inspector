@@ -1,4 +1,4 @@
-# 🌟 meta-inspector, the no headless browser URL fetcher for meta tags
+# ⚡️ meta-inspector, the no headless browser URL fetcher for meta tags
 
 <div align="center">
   
