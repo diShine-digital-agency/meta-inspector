@@ -114,12 +114,12 @@ Every issue includes a description and, where applicable, the exact HTML snippet
 
 Shows how the link will appear on:
 
-- **Google Search** — title (60 chars), URL, description (155 chars)
-- **Facebook / Meta** — image, domain, title, description
-- **Twitter / X** — image, title, description, domain
-- **LinkedIn** — image, title, domain
-- **Slack** — site name, title, description
-- **WhatsApp** — image, domain, title, description
+- **Google Search**: title (60 chars), URL, description (155 chars)
+- **Facebook / Meta**: image, domain, title, description
+- **Twitter / X**: image, title, description, domain
+- **LinkedIn**: image, title, domain
+- **Slack**: site name, title, description
+- **WhatsApp**: image, domain, title, description
 
 ---
 
