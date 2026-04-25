@@ -1,6 +1,14 @@
 import { request as httpsRequest } from "https";
 import { request as httpRequest } from "http";
+import { readFileSync } from "fs";
 import { URL } from "url";
+
+// Read version from package.json so the User-Agent stays in sync with the published release.
+let PKG_VERSION = "0.0.0";
+try {
+  const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf-8"));
+  PKG_VERSION = pkg.version;
+} catch { /* fall back to 0.0.0 if package.json is unreadable (e.g. bundled) */ }
 
 /**
  * Fetches a URL following redirects (up to 10 hops).
@@ -49,7 +57,7 @@ function singleFetch(url, { timeout, userAgent }) {
       path: parsed.pathname + parsed.search,
       method: "GET",
       headers: {
-        "User-Agent": userAgent || "Mozilla/5.0 (compatible; meta-inspector/1.0; +https://github.com/diShine-digital-agency/meta-inspector)",
+        "User-Agent": userAgent || `Mozilla/5.0 (compatible; meta-inspector/${PKG_VERSION}; +https://github.com/diShine-digital-agency/meta-inspector)`,
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.9",
         "Accept-Encoding": "identity",
