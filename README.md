@@ -1,4 +1,4 @@
-# ⚡️ meta-inspector, the no headless browser URL fetcher for meta tags
+# ⚡️ meta-inspector: headless-free meta tag fetcher and social preview validator
 
 <div align="center">
   
@@ -47,6 +47,17 @@ npx @dishine/meta-inspector example.com
 ```
 
 Requires Node.js 18 or later.
+
+---
+
+## Requirements
+
+- **Node.js** 18 or later.
+- **No browser dependency.** Unlike full-page audit tools, meta-inspector fetches raw HTML over HTTP and parses it with [cheerio](https://github.com/cheeriojs/cheerio). It does not download Chromium and does not execute page JavaScript.
+- **Disk:** ~4 MB total (cheerio has no further runtime dependencies).
+- **Memory:** typically well under 100 MB per scan, even for multi-MB pages.
+- **Typical scan time:** 200–800 ms per URL on a reasonable connection, most of which is network latency. Large HTML documents (>1 MB) may take up to ~2 s.
+- **Caveat — JavaScript-rendered sites.** meta-inspector reads the HTML as served. Single-page apps (React, Vue, Svelte) that inject meta tags at runtime will surface empty results. For SSR / pre-rendered pages (Next.js, Nuxt, Astro, Gatsby, Jekyll, Hugo, WordPress) the full meta graph is available.
 
 ---
 

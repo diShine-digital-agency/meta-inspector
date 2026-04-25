@@ -24,5 +24,6 @@ meta-inspector is a CLI tool that makes HTTP requests to user-specified URLs and
 
 | Version | Supported |
 |---------|-----------|
-| 1.1.x   | Yes       |
+| 1.2.x   | Yes       |
+| 1.1.x   | Security fixes only |
 | < 1.1   | No        |

@@ -538,26 +538,92 @@ meta-inspector example.com --user-agent "Mozilla/5.0 (Macintosh; Intel Mac OS X 
 
 ### "Permission denied" on install
 
-**Fix:**
+**Cause:** `npm install -g` is trying to write into a system-owned prefix (e.g. `/usr/local/lib/node_modules`) that your user account does not own.
+**Preferred fix — don't use `sudo`.** `sudo npm install -g` mixes root-owned files into the global store and causes permission headaches later. Instead:
+
 ```bash
-sudo npm install -g @dishine/meta-inspector
-```
-Or use `npx` (no global install):
-```bash
+# Option A: skip the global install and use npx
 npx @dishine/meta-inspector example.com
+
+# Option B: point npm at a user-owned prefix
+mkdir -p ~/.npm-global
+npm config set prefix "$HOME/.npm-global"
+export PATH="$HOME/.npm-global/bin:$PATH"   # add to ~/.zshrc or ~/.bashrc
+npm install -g @dishine/meta-inspector
+
+# Option C: use a version manager (nvm, fnm, volta) — npm prefix is already user-owned
 ```
+
+### Corporate proxy or firewall blocks the fetch
+
+**Cause:** Requests leave your machine but never reach the target host because an outbound proxy intercepts them, or a firewall denies the destination.
+**Fix:** Node honours the standard proxy environment variables starting in v20. For v18, set them too and re-run:
+
+```bash
+export HTTPS_PROXY=http://proxy.corp.example:3128
+export HTTP_PROXY=http://proxy.corp.example:3128
+export NO_PROXY=localhost,127.0.0.1,.internal
+meta-inspector example.com
+```
+
+If the proxy requires authentication, embed it: `http://user:pass@proxy.corp.example:3128`. If requests still fail, ask IT whether outbound requests from Node need to go through a specific egress IP.
+
+### SSL certificate errors (self-signed, expired, or internal CA)
+
+**Symptom:** errors like `unable to verify the first certificate`, `self signed certificate`, `CERT_HAS_EXPIRED`.
+**Fix — preferred:** point Node at the custom CA bundle instead of disabling verification.
+
+```bash
+export NODE_EXTRA_CA_CERTS=/path/to/corporate-ca-bundle.pem
+meta-inspector https://internal.example
+```
+
+For one-off scans of a dev environment with a self-signed cert you *control*, you may temporarily set `NODE_TLS_REJECT_UNAUTHORIZED=0` — but never on public URLs, and never in CI that scans arbitrary targets, as it disables TLS verification for the whole process.
+
+### 403 Forbidden from sites that block non-browser User-Agents
+
+**Cause:** some WAFs (Cloudflare, Akamai, Sucuri) return 403 or serve a challenge page to any User-Agent that doesn't look like a real browser. meta-inspector advertises itself honestly by default, which is the right thing for most sites but not for bot-defended ones.
+**Fix:** pass a browser User-Agent for this scan:
+
+```bash
+meta-inspector example.com \
+  --user-agent "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+```
+
+If the site issues a JavaScript challenge (Cloudflare "Just a moment…", PerimeterX, DataDome), no HTTP-only tool can clear it — you'll need a headless browser. Consider pairing meta-inspector with [cookie-audit](https://github.com/diShine-digital-agency/cookie-audit) for those cases, or run the inspection from an IP that the WAF trusts.
+
+### Empty body on pages that require compression
+
+**Cause:** meta-inspector requests `Accept-Encoding: identity` to keep the fetch code simple and avoid decompression surprises. A tiny number of CDNs return an empty body when they can't serve `identity`.
+**Fix:** ask the origin directly if possible (bypass the CDN), or scan a mirror. If you hit this repeatedly on the same host, open an issue with the URL.
+
+### Windows "path too long" errors
+
+**Cause:** Windows' default `MAX_PATH` limit (260 chars) can trip during `npm install -g` when node_modules nests deeply.
+**Fix (Windows 10+):** enable long paths:
+
+```powershell
+# Run in an elevated PowerShell
+New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" `
+  -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force
+```
+
+Then restart your terminal. Alternatively, use `npx @dishine/meta-inspector` and skip the global install entirely.
 
 ### Reports look messy in the terminal
 
-**Cause:** Terminal window is too narrow.
-**Fix:** Widen your terminal to at least 80 columns. The social preview boxes need ~50 columns minimum.
+**Cause:** Terminal window is too narrow, or your terminal doesn't render ANSI colors.
+**Fix:** Widen your terminal to at least 80 columns. The social preview boxes need ~50 columns minimum. If colors render as escape codes (`\x1b[1m...`), set `NO_COLOR=1` or pipe into `less -R`.
 
 ---
 
 ## 13. FAQ
 
 **Q: Does this tool use a headless browser?**
-A: No. It uses a simple HTTP fetch — much faster (~400ms per page) and no Chromium download needed. The tradeoff is that it can't see meta tags injected by JavaScript.
+A: No. It uses a plain HTTP fetch and parses the returned HTML with cheerio. Typical scan time is 200–800 ms per URL (most of which is network latency), memory footprint stays well under 100 MB, and no Chromium download is needed. The tradeoff: it cannot see meta tags that are injected by client-side JavaScript.
+
+**Q: Does it work on SPAs (React, Vue, Svelte)?**
+A: Only if the SPA pre-renders meta tags server-side. Pure client-rendered SPAs inject `<title>` and `<meta>` at runtime, and meta-inspector will surface them as empty. Frameworks that server-render or pre-render (Next.js, Nuxt, Remix, Astro, Gatsby, SvelteKit with SSR, WordPress, Jekyll, Hugo, Eleventy) all work correctly. To check quickly: open the page, `View Source` (not `Inspect Element`) — if the meta tags are in the raw HTML, meta-inspector will see them.
 
 **Q: How is this different from the Facebook Sharing Debugger?**
 A: Facebook's debugger only shows Facebook-specific tags. meta-inspector extracts everything (SEO, Open Graph, Twitter Card, Schema.org, Dublin Core, article metadata, security headers) and simulates previews for 6 platforms in one command. It works offline, requires no login, and supports batch scanning.
@@ -573,6 +639,15 @@ A: No. It can only inspect publicly accessible URLs.
 
 **Q: Can I add custom validation rules?**
 A: Yes. Edit `src/validator.js` to add custom checks. Each check is a simple function that receives the extracted data and returns issues.
+
+**Q: How does it handle redirects?**
+A: Up to 10 hops are followed automatically, and the full chain is reported in the JSON output as `redirectChain` (and at the top of the terminal report). Relative `Location` headers are resolved against the previous URL.
+
+**Q: Does it send analytics or phone home?**
+A: No. Every fetch goes directly to the URL you specify; nothing is reported to diShine or anyone else. Output goes only to stdout or the file you pass with `-o`.
+
+**Q: What impact does a scan have on the target site?**
+A: One HTTP GET per URL. That is equivalent to a single visitor loading the page source — no asset fetches, no JavaScript execution, no repeat requests. Safe to run against production.
 
 ---
 
