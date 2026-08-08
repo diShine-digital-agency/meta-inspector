@@ -182,7 +182,7 @@ Shows how the link will appear on:
 | Flag | Description | Default |
 |------|-------------|---------|
 | `-f, --format` | Output format: `table`, `json`, `markdown` | `table` |
-| `-o, --output` | Save report to file | stdout |
+| `-o, --output` | Save report to file (ANSI colors stripped) | stdout |
 | `-t, --timeout` | Request timeout in ms | `15000` |
 | `--user-agent` | Custom User-Agent string | meta-inspector/1.0 |
 | `--no-previews` | Skip social preview simulation | off |
@@ -214,6 +214,14 @@ console.log(formatMarkdown({ fetchInfo: page, data, validation, previews }));
 // data.security    — CSP, referrer policy
 // validation.scores — { overall, seo, openGraph, twitterCard, schema }
 // validation.issues — array of issues with severity and fix
+```
+
+---
+
+Progress and status messages are written to **stderr**, so stdout stays clean and machine-parseable:
+
+```bash
+meta-inspector example.com -f json | jq .scores
 ```
 
 ---

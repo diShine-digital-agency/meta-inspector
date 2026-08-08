@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-08-08
+
+### Fixed
+
+- **Crash with `--no-previews`** — table and Markdown output threw `TypeError: Cannot convert undefined or null to object` when social previews were skipped. The Social Previews section is now omitted in that case.
+- **Stdout pollution** — progress messages (`meta-inspector — analyzing...`, `Fetching: ...`, `Report saved to: ...`) are now written to **stderr**, so `meta-inspector example.com -f json | jq` works without `--quiet`.
+- **Truncated output on pipes** — the CLI now sets `process.exitCode` instead of calling `process.exit()`, so large reports are fully flushed to stdout before the process exits.
+- **Favicon false positive** — pages with only `apple-touch-icon` (or another explicit icon) no longer get a "No favicon link tag found" warning.
+
+### Security
+
+- Updated transitive dependency `undici` (via `npm audit fix`) — fixes a high-severity advisory affecting the HTTP client bundled with cheerio's dependency tree.
+
 ## [1.1.0] - 2026-04-06
 
 ### Added
@@ -63,5 +76,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Programmatic API with named exports.
 - Exit codes for CI/CD integration.
 
+[1.2.0]: https://github.com/diShine-digital-agency/meta-inspector/compare/v1.1...v1.2.0
 [1.1.0]: https://github.com/diShine-digital-agency/meta-inspector/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/diShine-digital-agency/meta-inspector/releases/tag/v1.0.0

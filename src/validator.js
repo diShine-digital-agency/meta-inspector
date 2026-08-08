@@ -113,8 +113,11 @@ function validateSEO(data, pageUrl, issues) {
     score -= 5;
   }
 
-  // Favicon check — flag when no explicit <link rel="icon"> tag exists
-  if (data.links.icons.length === 0) {
+  // Favicon check — flag when no explicit icon link tag exists
+  // (apple-touch-icon counts, since browsers and crawlers use it as a favicon)
+  const hasFavicon = data.links.icons.length > 0 ||
+    (data.images?.favicon && !data.images.favicon.endsWith("/favicon.ico"));
+  if (!hasFavicon) {
     issues.push(issue("low", "seo", "No favicon link tag found", "Browsers and search results display favicons. Add an explicit link tag.", '<link rel="icon" href="/favicon.svg" type="image/svg+xml">'));
     score -= 2;
   }
