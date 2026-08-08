@@ -65,18 +65,20 @@ if (flags.format === "md") flags.format = "markdown";
 // ── Main ───────────────────────────────────────────────────────────────
 
 async function main() {
+  // Progress and status messages go to stderr so that JSON/Markdown output
+  // on stdout stays machine-parseable even without --quiet.
   if (!flags.quiet) {
-    console.log("");
-    console.log("  meta-inspector — analyzing...");
-    console.log(`  ${urls.length === 1 ? urls[0] : `${urls.length} URLs`}`);
-    console.log("");
+    log("");
+    log("  meta-inspector — analyzing...");
+    log(`  ${urls.length === 1 ? urls[0] : `${urls.length} URLs`}`);
+    log("");
   }
 
   let allReports = [];
 
   for (const url of urls) {
     if (!flags.quiet && urls.length > 1) {
-      console.log(`  Fetching: ${url}`);
+      log(`  Fetching: ${url}`);
     }
 
     try {
@@ -132,14 +134,16 @@ async function main() {
   if (flags.output) {
     const outPath = resolve(flags.output);
     writeFileSync(outPath, stripAnsi(output), "utf-8");
-    if (!flags.quiet) console.log(`  Report saved to: ${outPath}`);
+    if (!flags.quiet) log(`  Report saved to: ${outPath}`);
   } else {
     console.log(output);
   }
 
-  // Exit non-zero if overall score is below 50
+  // Exit non-zero if overall score is below 50.
+  // Use process.exitCode instead of process.exit() so stdout is fully flushed
+  // before the process ends (avoids truncated output when piping).
   const worst = Math.min(...allReports.map((r) => r.validation.scores.overall));
-  process.exit(worst < 50 ? 1 : 0);
+  process.exitCode = worst < 50 ? 1 : 0;
 }
 
 main().catch((err) => {
@@ -168,6 +172,10 @@ function getFlag(names) {
 
 function stripAnsi(str) {
   return str.replace(/\x1b\[[0-9;]*m/g, "");
+}
+
+function log(...a) {
+  console.error(...a);
 }
 
 function printHelp() {
